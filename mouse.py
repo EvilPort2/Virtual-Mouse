@@ -13,8 +13,18 @@ upper = np.array([t[3], t[4], t[5]])                    # HSV green upper
 screen_width, screen_height = gui.size()
 _, img1 = cam.read()
 camx, camy = int(img1.shape[1]), int(img1.shape[0])
-print(img1.shape)
 
+def zooming(diff):
+    damping = 2
+    mod_diff = int(diff/damping)
+    gui.keyDown('ctrlleft')
+    for i in range(abs(mod_diff)):
+        gui.scroll(mod_diff/abs(mod_diff))
+        if mod_diff/abs(mod_diff) > 0:
+            gui.press('+')
+        else:
+            gui.press('-')
+    gui.keyUp('ctrlleft')
 
 def top(collection, key, n):
     collection = sorted(collection, key = key, reverse = True)
@@ -23,7 +33,7 @@ def top(collection, key, n):
         returnable.append(collection[i])
     return returnable
 
-def mouse_action():
+def start_mouse():
     #kernelopen = np.ones((5, 5), np.uint8)
     #kernelclose = np.ones((15, 15), np.uint8)
     center = (0, 0)
@@ -35,6 +45,10 @@ def mouse_action():
     flag2 = False
     flag1 = False
     flag0 = True
+
+    distance = old_distance = 0
+    diff = 0
+    c = 0
 
     while True:
         _, img = cam.read()
@@ -152,11 +166,39 @@ def mouse_action():
                 error1 = error2 = error3 = error4 = error5 = error6 = 100
 
             if (error1 <= 50 and error6 < 20) or (error2 <= 50 and error5 < 20) or (error3 <= 50 and error4 < 20):
+                cv2.circle(img,(int(x), int(y)), int(radius), (0, 255, 0), 2)
                 if flag3 == True and radius > 20:
                     gui.rightClick()
                     flag3 = False
                     flag2 = True
                     flag1 = False
+ 
+            else:
+                rect1 = cv2.minAreaRect(c1)
+                center1 = list(rect1[0])
+                box = cv2.boxPoints(rect1)
+                box = np.int0(box)
+                cv2.drawContours(img, [box], 0, (0, 255, 0), 2)
+ 
+                center1[0] = int(center1[0])
+                center1[1] = int(center1[1])
+                center2[0] = int(center2[0])
+                center2[1] = int(center2[1])
+                cv2.line(img, tuple(center1), tuple(center2), (255, 0, 0), 2)
+ 
+                distance = np.sqrt((center1[1]-center2[1])**2 + (center1[0]-center2[0])**2)
+ 
+                if c == 0:
+                    old_distance = distance
+                c += 1
+                if c > 1:
+                    diff = distance - old_distance
+                    c = 0
+                if flag0 == True:
+                    diff = 0
+                    flag0 = False
+ 
+                zooming(diff)
 
         elif len(contours) >= 1:
             damping = 3
@@ -192,4 +234,4 @@ def mouse_action():
     cam.release()
     cv2.destroyAllWindows()
 
-mouse_action()
+start_mouse()
