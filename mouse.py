@@ -5,18 +5,6 @@ import pickle
 import thread
 gui.FAILSAFE = False
 
-def zooming(diff):
-    damping = 2
-    mod_diff = int(diff/damping)
-    gui.keyDown('ctrlleft')
-    for i in range(abs(mod_diff)):
-        #gui.scroll(mod_diff/abs(mod_diff))
-        if mod_diff/abs(mod_diff) > 0:
-            gui.press('+')
-        else:
-            gui.press('-')
-    gui.keyUp('ctrlleft')
-
 def top(collection, key, n):
     collection = sorted(collection, key = key, reverse = True)
     returnable = []
