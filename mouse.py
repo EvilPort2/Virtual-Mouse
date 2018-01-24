@@ -12,11 +12,6 @@ def top(collection, key, n):
         returnable.append(collection[i])
     return returnable
 
-def start_virtual_keyboard():
-    from modules.virtual_keyboard.virtual_keyboard import start_keyboard
-    start_keyboard()
-
-
 def start_mouse():
     with open("range.pickle", "rb") as f:
         t = pickle.load(f)
