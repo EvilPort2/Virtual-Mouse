@@ -44,7 +44,6 @@ def start_mouse():
         blur = cv2.medianBlur(mask, 15)
         blur = cv2.GaussianBlur(blur , (5,5), 0)
         thresh = cv2.threshold(blur,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)[1]
-        #cv2.imshow("Thresh", thresh)
         contours = cv2.findContours(thresh.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)[1]
         mposx, mposy = gui.position()
 
@@ -89,9 +88,7 @@ def start_mouse():
             cv2.line(img, tuple(center1), tuple(center2), (255, 0, 0), 2)
             cv2.circle(img, tuple(center[0]), 2, (255, 0, 0), 3)
 
-            #print(flags)
             if not flags[0]:
-                #print("flags[0]", flags[0])
                 if np.any(abs(center[0] - old_center[0]) > 5):
                     thread.start_new_thread(gui.moveTo, (mposx+(center[0][0]-old_center[0][0])*sx, mposy + (center[0][1]-old_center[0][1])*sy,\
                      0.1, gui.easeInOutQuad))
@@ -110,24 +107,24 @@ def start_mouse():
             cv2.drawContours(img,[box],0,(0,0,255),2)
 
             error = abs((area1+area2-area3)/area3*100)
-            #print(error)
             if (error < 40):
                 finger_frame_count[1] += 1
-                #is_clicked = True
                 # do a left click and hold if the fingers were together for more than 20 frames
                 if finger_frame_count[1] > 20:
                     if not is_mouse_down:
                         gui.mouseDown()
                         is_mouse_down = True
                     if np.any(abs(center[1] - old_center[1]) > 5):
-                            #gui.moveTo(mposx+(center[0]-old_center[0])*sx, mposy + (center[1]-old_center[1])*sy)
-                        thread.start_new_thread(gui.moveTo, (mposx+(center[1][0]-old_center[1][0])*sx, mposy + (center[1][1]-old_center[1][1])*sy, 0.01, gui.easeInOutQuad))         
+                        thread.start_new_thread(gui.moveTo, (mposx+(center[1][0]-old_center[1][0])*sx, mposy + (center[1][1]-old_center[1][1])*sy, \
+                            0.1, gui.easeInOutQuad))         
                 flags = [False, True, False]
             else:
                 flags = [True, False, False]
 
         else:
-            thread.start_new_thread(gui.mouseUp, ())
+            if is_mouse_down:
+                thread.start_new_thread(gui.mouseUp, ())
+                is_mouse_down = False
             flags = [True, False, False]
 
         cv2.imshow("Virtual Mouse", img)
