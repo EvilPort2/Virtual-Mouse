@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import pyautogui as gui
 import pickle
-import thread
+from threading import Thread
 gui.FAILSAFE = False
 
 def top(collection, key, n):
@@ -17,6 +17,8 @@ def start_mouse():
         t = pickle.load(f)
 
     cam = cv2.VideoCapture(1)
+    if cam.read()[0]==False:
+        cam = cv2.VideoCapture(0)
     lower = np.array([t[0], t[1], t[2]])                       # HSV green lower
     upper = np.array([t[3], t[4], t[5]])                    # HSV green upper
     screen_width, screen_height = gui.size()
@@ -51,7 +53,7 @@ def start_mouse():
         if len(contours) >= 2:
             old_center[0] = center[0]
             if is_mouse_down:
-                thread.start_new_thread(gui.mouseUp, ())
+                Thread(target=gui.mouseUp, args=()).start()
                 is_mouse_down = False
             # if left click was done
             if flags[1] == True:
@@ -90,8 +92,8 @@ def start_mouse():
 
             if not flags[0]:
                 if np.any(abs(center[0] - old_center[0]) > 5):
-                    thread.start_new_thread(gui.moveTo, (mposx+(center[0][0]-old_center[0][0])*sx, mposy + (center[0][1]-old_center[0][1])*sy,\
-                     0.1, gui.easeInOutQuad))
+                    Thread(target=gui.moveTo, args=(mposx+(center[0][0]-old_center[0][0])*sx, mposy + (center[0][1]-old_center[0][1])*sy,\
+                     0.1, gui.easeInOutQuad)).start()
    
             flags = [False, False, True]      
 
@@ -115,14 +117,15 @@ def start_mouse():
                         gui.mouseDown()
                         is_mouse_down = True
                     if np.any(abs(center[1] - old_center[1]) > 5):
-                        thread.start_new_thread(gui.moveTo, (mposx+(center[1][0]-old_center[1][0])*sx, mposy + (center[1][1]-old_center[1][1])*sy, \
-                            0.1, gui.easeInOutQuad))         
+                        Thread(target=gui.moveTo, args=(mposx+(center[1][0]-old_center[1][0])*sx, mposy + (center[1][1]-old_center[1][1])*sy, \
+                            0.1, gui.easeInOutQuad)).start()     
                 flags = [False, True, False]
             else:
                 flags = [True, False, False]
 
         else:
             if is_mouse_down:
+                Thread(target=gui.mouseUp, args=()).start()
                 thread.start_new_thread(gui.mouseUp, ())
                 is_mouse_down = False
             flags = [True, False, False]
